@@ -1,0 +1,11 @@
+{
+  "name": "com.puremilk.state",
+  "version": "0.0.1",
+  "description": "monitor mobile's states",
+  "author": "Xuhua Chow",
+  "license": "apache 2.0",
+  "displayName": "Puremilk.State",
+  "repository": {
+    "url": "https://github.com/chick-soups/StateMonitorForUnity.git"
+  }
+}
