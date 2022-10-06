@@ -1,0 +1,14 @@
+{
+    "name": "com.puremilk.status.Runtime",
+    "rootNamespace": "Puremilk.Status",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
