@@ -47,22 +47,27 @@ namespace Puremilk.Status
             }
         }
 
-        public UnityEvent<float> BatteryLevelChanged{
-            get{
+        public UnityEvent<float> BatteryLevelChanged
+        {
+            get
+            {
                 return m_BatteryLevelChanged;
             }
         }
 
         private UnityEvent<UnityEngine.BatteryStatus> m_BatteryStatusChanged = new UnityEvent<UnityEngine.BatteryStatus>();
-        private UnityEvent<float> m_BatteryLevelChanged=new UnityEvent<float>();
+        private UnityEvent<float> m_BatteryLevelChanged = new UnityEvent<float>();
 #if UNITY_ANDROID
         private AndroidJavaObject m_Helper;
 
         public BatteryStatus()
         {
-
-            BatteryStateCallback callback=new BatteryStateCallback(m_BatteryStatusChanged,m_BatteryLevelChanged);
-            m_Helper=new AndroidJavaObject("com.puremilk.status.BatteryStatusHelper",callback);
+#if UNITY_EDITOR
+            string label = typeof(BatteryStatus).ToString();
+            UnityEditor.EditorPrefs.SetBool(label, true);
+#endif
+            BatteryStateCallback callback = new BatteryStateCallback(m_BatteryStatusChanged, m_BatteryLevelChanged);
+            m_Helper = new AndroidJavaObject("com.puremilk.status.BatteryStatusHelper", callback);
         }
 
         public void Register()
@@ -79,7 +84,7 @@ namespace Puremilk.Status
         {
             m_Helper.Dispose();
         }
-        #endif
+#endif
     }
 #if UNITY_ANDROID
     public class BatteryStateCallback : AndroidJavaProxy, ICallback_Int_Float
@@ -93,13 +98,13 @@ namespace Puremilk.Status
 
         private UnityEvent<UnityEngine.BatteryStatus> m_Callback;
         private UnityEvent<float> m_batteryLevelCallback;
-        public BatteryStateCallback(UnityEvent<UnityEngine.BatteryStatus> callback,UnityEvent<float> batteryLevelCallback) : base("com.puremilk.status.ICallback_Int_Float")
+        public BatteryStateCallback(UnityEvent<UnityEngine.BatteryStatus> callback, UnityEvent<float> batteryLevelCallback) : base("com.puremilk.status.ICallback_Int_Float")
         {
             m_Callback = callback;
-            m_batteryLevelCallback=batteryLevelCallback;
+            m_batteryLevelCallback = batteryLevelCallback;
         }
 
-        public void Callback(int status,float batteryLevel)
+        public void Callback(int status, float batteryLevel)
         {
             switch (status)
             {
@@ -119,11 +124,12 @@ namespace Puremilk.Status
                     m_Callback.Invoke(UnityEngine.BatteryStatus.Unknown);
                     break;
             }
-            if(batteryLevel>=0){
+            if (batteryLevel >= 0)
+            {
                 m_batteryLevelCallback.Invoke(batteryLevel);
             }
-            
-            
+
+
         }
     }
 #endif

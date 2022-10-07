@@ -43,10 +43,14 @@ namespace Puremilk.Status
 
         public NetworkStatus()
         {
+#if UNITY_EDITOR
+            string label = typeof(NetworkStatus).ToString();
+            UnityEditor.EditorPrefs.SetBool(label, true);
+#endif
             NetworkStatusCallback callback = new NetworkStatusCallback(m_StatusChanged);
             m_Helper = new AndroidJavaObject("com.puremilk.status.NetworkReachablityHelper", callback);
         }
-        
+
         ///If android,should add permissions android.permission.ACCESS_NETWORK_STATE android.permission.CHANGE_NETWORK_STATE android.permission.INTERNET
         public void Register()
         {
@@ -56,7 +60,7 @@ namespace Puremilk.Status
         public void UnRegister()
         {
             m_Helper.Call("UnRegister");
-            
+
         }
 
         public void Dispose()
