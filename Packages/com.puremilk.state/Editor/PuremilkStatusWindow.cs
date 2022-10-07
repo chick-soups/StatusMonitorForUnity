@@ -5,6 +5,9 @@ using UnityEditor;
 using System;
 using System.Reflection;
 using System.Linq;
+using UnityEditor.Callbacks;
+using System.IO;
+using System.Xml;
 
 namespace Puremilk.Status
 {
@@ -28,24 +31,9 @@ namespace Puremilk.Status
         private static void Init()
         {
             PuremilkStatusWindow window = GetWindow<PuremilkStatusWindow>("PureMilk Status", true);
+            window.StatusTypes = GetAllTypeWithStatusAttribute();
             window.Show();
-            Assembly assembly = Assembly.GetAssembly(typeof(StatusAttribute));
-            Type[] types = assembly.GetExportedTypes();
-            var statuses = types.Where(o =>
-            {
-                Attribute[] attributes = Attribute.GetCustomAttributes(o);
-                foreach (var item in attributes)
-                {
-                    if (item is StatusAttribute)
-                    {
-                        return true;
-                    }
-                }
-                return false;
-            });
-            window.StatusTypes = statuses;
-
-
+            OnPostProcess(BuildTarget.Android,null);
         }
 
         private void OnGUI()
@@ -62,6 +50,56 @@ namespace Puremilk.Status
               }
             }
             GUILayout.EndVertical();
+        }
+
+        private static IEnumerable<Type> GetAllTypeWithStatusAttribute(){
+              Assembly assembly = Assembly.GetAssembly(typeof(StatusAttribute));
+            Type[] types = assembly.GetExportedTypes();
+            var statuses = types.Where(o =>
+            {
+                Attribute[] attributes = Attribute.GetCustomAttributes(o);
+                foreach (var item in attributes)
+                {
+                    if (item is StatusAttribute)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            });
+            return statuses;
+        }
+
+        [PostProcessBuildAttribute]
+        private static void OnPostProcess(BuildTarget target, string pathToBuiltProject){
+           IEnumerable<Type> statuses=GetAllTypeWithStatusAttribute();
+            switch (target)
+            {
+                case BuildTarget.Android:
+                string path=string.Join("/",Application.dataPath,"Plugins/Android/AndroidManifest.xml");
+                if(File.Exists(path))
+                {
+                    XmlDocument xmlDocument=new XmlDocument();
+                    xmlDocument.LoadXml(path);
+                    foreach (var item in statuses)
+                    {
+                       MethodInfo methodInfo = item.GetMethod("HandleBuildProcessAndroid");
+                       if(methodInfo!=null){
+                        methodInfo.Invoke(null,new object[]{xmlDocument});
+                       }
+                    }
+                    xmlDocument.Save(path);
+                }
+                else
+                {
+                    Debug.LogError("The AndroidManifest.xml is not exit.Please use the custom main manifest");
+                }
+
+                break;
+                case BuildTarget.iOS:
+                break;
+            }
+
         }
     }
 }

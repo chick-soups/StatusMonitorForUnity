@@ -68,6 +68,13 @@ namespace Puremilk.Status
             m_Helper.Dispose();
         }
 #endif
+
+#if UNITY_EDITOR
+        private static void HandleBuildProcessAndroid(System.Xml.XmlDocument xmlDocument){
+            Debug.Log(xmlDocument.Name);
+            Debug.Log(typeof(BatteryStatus).ToString());
+        }
+#endif
     }
 #if UNITY_ANDROID
     public class NetworkStatusCallback : AndroidJavaProxy, ICallback_Int
