@@ -15,11 +15,8 @@
 using UnityEngine;
 using UnityEngine.Events;
 using System;
-
-
 namespace Puremilk.Status
 {
-    [StatusAttribute()]
     public class NetworkStatus : IDisposable
     {
         public static NetworkReachability CurStatus
@@ -69,12 +66,7 @@ namespace Puremilk.Status
         }
 #endif
 
-#if UNITY_EDITOR
-        private static void HandleBuildProcessAndroid(System.Xml.XmlDocument xmlDocument){
-            Debug.Log(xmlDocument.Name);
-            Debug.Log(typeof(BatteryStatus).ToString());
-        }
-#endif
+
     }
 #if UNITY_ANDROID
     public class NetworkStatusCallback : AndroidJavaProxy, ICallback_Int

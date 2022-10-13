@@ -21,7 +21,6 @@ using System;
 
 namespace Puremilk.Status
 {
-    [StatusAttribute()]
     public class BatteryStatus : IDisposable
     {
         public static float BatteryLevel
@@ -83,13 +82,6 @@ namespace Puremilk.Status
         public void Dispose()
         {
             m_Helper.Dispose();
-        }
-#endif
-
-#if UNITY_EDITOR
-        private static void HandleBuildProcessAndroid(System.Xml.XmlDocument xmlDocument){
-            Debug.Log(xmlDocument.Name);
-            Debug.Log(typeof(BatteryStatus).ToString());
         }
 #endif
     }
