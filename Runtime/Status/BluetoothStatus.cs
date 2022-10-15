@@ -37,7 +37,7 @@ namespace Puremilk.Status
                 #if UNITY_ANDROID
                 AndroidJavaClass androidJavaClass = new AndroidJavaClass("com.puremilk.status.BluetoothStatusHelper");
                 int statusIndex = androidJavaClass.CallStatic<int>("CurStatus");
-                return ParseInt(statusIndex);
+                return ParseIntStatus(statusIndex);
                 #endif
             }
         }
@@ -57,11 +57,16 @@ namespace Puremilk.Status
         public BluetoothStatus()
         {
 #if UNITY_EDITOR
-            string label = typeof(BatteryStatus).ToString();
+            string label = typeof(BluetoothStatus).ToString();
             UnityEditor.EditorPrefs.SetBool(label, true);
 #endif
-            BluetoothStatusCallback callback = new BluetoothStatusCallback(m_StatusChanged);
-            m_Helper = new AndroidJavaObject("com.puremilk.status.BluetoothStatusHelper", callback);
+            UnityEvent<int> intCallback=new UnityEvent<int>();
+            intCallback.AddListener((status)=>{
+                Status curStatus =   ParseIntStatus(status);
+                m_StatusChanged.Invoke(curStatus);
+            });
+            ProxyCallback_Int proxyCallback=new ProxyCallback_Int(intCallback);
+            m_Helper = new AndroidJavaObject("com.puremilk.status.BluetoothStatusHelper", proxyCallback);
         }
 
         public void Register()
@@ -78,7 +83,7 @@ namespace Puremilk.Status
         {
             m_Helper.Dispose();
         }
-        internal static Status ParseInt(int status){
+        internal static Status ParseIntStatus(int status){
             switch(status){
                 case 10:
                 return Status.OFF;
@@ -94,26 +99,4 @@ namespace Puremilk.Status
         }
 #endif
     }
-#if UNITY_ANDROID
-    public class BluetoothStatusCallback : AndroidJavaProxy, ICallback_Int
-    {
-
-        private const int STATE_OFF = 10;
-        private const int STATE_TURNING_ON = 11;
-        private const int STATE_ON = 12;
-        private const int STATE_TURNING_OFF =13;
-
-        private UnityEvent<BluetoothStatus.Status> m_Callback;
-        public BluetoothStatusCallback(UnityEvent<BluetoothStatus.Status> callback) : base("com.puremilk.status.ICallback_Int")
-        {
-            m_Callback = callback;
-        }
-
-        public void Callback(int status)
-        {
-             BluetoothStatus.Status curStatus =  BluetoothStatus.ParseInt(status);
-             m_Callback.Invoke(curStatus);
-        }
-    }
-#endif
 }
