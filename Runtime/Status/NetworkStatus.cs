@@ -35,8 +35,9 @@ namespace Puremilk.Status
             }
         }
         private UnityEvent<NetworkReachability> m_StatusChanged = new UnityEvent<NetworkReachability>();
-#if UNITY_ANDROID
+#if UNITY_ANDROID && !UNITY_EDITOR
         private AndroidJavaObject m_Helper;
+#endif
 
         public NetworkStatus()
         {
@@ -44,43 +45,40 @@ namespace Puremilk.Status
             string label = typeof(NetworkStatus).ToString();
             UnityEditor.EditorPrefs.SetBool(label, true);
 #endif
-            NetworkStatusCallback callback = new NetworkStatusCallback(m_StatusChanged);
-            m_Helper = new AndroidJavaObject("com.puremilk.status.NetworkReachablityHelper", callback);
+#if UNITY_ANDROID && !UNITY_EDITOR
+            UnityEvent<int> statusCallback = new UnityEvent<int>();
+            statusCallback.AddListener((statusIndex) =>
+            {
+                m_StatusChanged.Invoke((NetworkReachability)statusIndex);
+            });
+            ProxyCallback_Int proxyCallback = new ProxyCallback_Int(statusCallback);
+            m_Helper = new AndroidJavaObject("com.puremilk.status.NetworkReachablityHelper", proxyCallback);
+#endif
         }
 
         ///If android,should add permissions android.permission.ACCESS_NETWORK_STATE android.permission.CHANGE_NETWORK_STATE android.permission.INTERNET
         public void Register()
         {
+#if UNITY_ANDROID && !UNITY_EDITOR
             m_Helper.Call("Register");
+#endif
         }
 
         public void UnRegister()
         {
+#if UNITY_ANDROID && !UNITY_EDITOR
             m_Helper.Call("UnRegister");
-
+#endif
         }
 
         public void Dispose()
         {
+#if UNITY_ANDROID && !UNITY_EDITOR
             m_Helper.Dispose();
-        }
 #endif
+        }
+
 
 
     }
-#if UNITY_ANDROID
-    public class NetworkStatusCallback : AndroidJavaProxy, ICallback_Int
-    {
-        private UnityEvent<NetworkReachability> m_Callback;
-        public NetworkStatusCallback(UnityEvent<NetworkReachability> callback) : base("com.puremilk.status.ICallback_Int")
-        {
-            m_Callback = callback;
-        }
-
-        public void Callback(int status)
-        {
-            m_Callback.Invoke((NetworkReachability)status);
-        }
-    }
-#endif
 }

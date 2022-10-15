@@ -48,7 +48,8 @@ namespace Puremilk.Status.Editor
                     foreach (var item in permissions)
                     {
                         XmlElement xmlElement = androidManifest.CreateElement("uses-permission");
-                        xmlElement.SetAttribute("android:name", item);
+                        //xmlElement.SetAttribute("android:name", item);
+                        xmlElement.SetAttribute("name","http://schemas.android.com/apk/res/android",item);
                         manifestElement.AppendChild(xmlElement);
                     }
 

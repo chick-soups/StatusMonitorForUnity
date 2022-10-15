@@ -56,8 +56,9 @@ namespace Puremilk.Status
 
         private UnityEvent<UnityEngine.BatteryStatus> m_BatteryStatusChanged = new UnityEvent<UnityEngine.BatteryStatus>();
         private UnityEvent<float> m_BatteryLevelChanged = new UnityEvent<float>();
-#if UNITY_ANDROID
+#if UNITY_ANDROID&&!UNITY_EDITOR
         private AndroidJavaObject m_Helper;
+#endif
 
         public BatteryStatus()
         {
@@ -65,71 +66,57 @@ namespace Puremilk.Status
             string label = typeof(BatteryStatus).ToString();
             UnityEditor.EditorPrefs.SetBool(label, true);
 #endif
-            BatteryStateCallback callback = new BatteryStateCallback(m_BatteryStatusChanged, m_BatteryLevelChanged);
+#if UNITY_ANDROID && !UNITY_EDITOR
+            UnityEvent<int> unityEvent=new UnityEvent<int>();
+            unityEvent.AddListener((Value)=>{
+               UnityEngine.BatteryStatus batteryStatus=ParseIndex(Value);
+               m_BatteryStatusChanged.Invoke(batteryStatus);
+            });
+            ProxyCallback_Int_Float callback = new ProxyCallback_Int_Float(unityEvent, m_BatteryLevelChanged);
             m_Helper = new AndroidJavaObject("com.puremilk.status.BatteryStatusHelper", callback);
+#endif
         }
 
         public void Register()
         {
+#if UNITY_ANDROID && !UNITY_EDITOR
             m_Helper.Call("Register");
+#endif
         }
 
         public void UnRegister()
         {
+#if UNITY_ANDROID && !UNITY_EDITOR
             m_Helper.Call("UnRegister");
+#endif
         }
 
         public void Dispose()
         {
+#if UNITY_ANDROID && !UNITY_EDITOR
             m_Helper.Dispose();
-        }
 #endif
-    }
-#if UNITY_ANDROID
-    public class BatteryStateCallback : AndroidJavaProxy, ICallback_Int_Float
-    {
-
-        private const int BATTERY_STATUS_UNKNOWN = 1;
-        private const int BATTERY_STATUS_CHARGING = 2;
-        private const int BATTERY_STATUS_DISCHARGING = 3;
-        private const int BATTERY_STATUS_NOT_CHARGING = 4;
-        private const int BATTERY_STATUS_FULL = 5;
-
-        private UnityEvent<UnityEngine.BatteryStatus> m_Callback;
-        private UnityEvent<float> m_batteryLevelCallback;
-        public BatteryStateCallback(UnityEvent<UnityEngine.BatteryStatus> callback, UnityEvent<float> batteryLevelCallback) : base("com.puremilk.status.ICallback_Int_Float")
-        {
-            m_Callback = callback;
-            m_batteryLevelCallback = batteryLevelCallback;
         }
 
-        public void Callback(int status, float batteryLevel)
+        private UnityEngine.BatteryStatus ParseIndex(int index)
         {
-            switch (status)
+            switch (index)
             {
-                case BATTERY_STATUS_DISCHARGING:
-                    m_Callback?.Invoke(UnityEngine.BatteryStatus.Discharging);
-                    break;
-                case BATTERY_STATUS_CHARGING:
-                    m_Callback?.Invoke(UnityEngine.BatteryStatus.Charging);
-                    break;
-                case BATTERY_STATUS_NOT_CHARGING:
-                    m_Callback?.Invoke(UnityEngine.BatteryStatus.NotCharging);
-                    break;
-                case BATTERY_STATUS_FULL:
-                    m_Callback?.Invoke(UnityEngine.BatteryStatus.Full);
-                    break;
+                case 1:
+                    return UnityEngine.BatteryStatus.Unknown;
+                case 2:
+                    return UnityEngine.BatteryStatus.Charging;
+                case 3:
+                    return UnityEngine.BatteryStatus.Discharging;
+                case 4:
+                    return UnityEngine.BatteryStatus.NotCharging;
+                case 5:
+                    return UnityEngine.BatteryStatus.Full;
                 default:
-                    m_Callback.Invoke(UnityEngine.BatteryStatus.Unknown);
-                    break;
-            }
-            if (batteryLevel >= 0)
-            {
-                m_batteryLevelCallback.Invoke(batteryLevel);
-            }
+                    throw new System.NotImplementedException();
 
-
+            }
         }
+
     }
-#endif
 }
