@@ -7,10 +7,7 @@ import android.net.NetworkCapabilities;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
-
 import com.unity3d.player.UnityPlayer;
-
 
 public class NetworkReachablityHelper
 {
@@ -37,7 +34,6 @@ public class NetworkReachablityHelper
                 if (curStatus != 0) {
                     curStatus = 0;
                     SendMessage(0);
-                    Log.d(TAG, "onLost: " + 0);
                 }
 
             }
@@ -49,14 +45,11 @@ public class NetworkReachablityHelper
                     if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)&&curStatus != 1) {
                         curStatus = 1;
                         SendMessage(1);
-                        Log.d(TAG, "onCapabilitiesChanged: " + 1);
-
                         return;
                     }
                     if (networkCapabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)&&curStatus != 2) {
                         curStatus = 2;
                         SendMessage(2);
-                        Log.d(TAG, "onCapabilitiesChanged: " + 2);
                     }
 
                 }
